@@ -24,4 +24,13 @@ const employees = Object.freeze({
   target: '51-500',
 });
 
-module.exports = { validLead, employees };
+/** Fields the form marks as required (*). */
+const requiredFields = Object.freeze(['name', 'email', 'phone']);
+
+/** Emails the browser should reject. */
+const invalidEmails = Object.freeze(['not-an-email', 'jane.tester@', '@example.com']);
+
+/** Clearly not a phone number. The form accepts it today (known issue #3). */
+const invalidPhone = 'call me maybe';
+
+module.exports = { validLead, employees, requiredFields, invalidEmails, invalidPhone };

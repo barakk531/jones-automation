@@ -1,6 +1,7 @@
 /**
  * Mocha root hooks, loaded for every test file through .mocharc.js.
  *
+ * - Screenshots from earlier runs are cleared, so old files can't be mistaken for new ones.
  * - One browser for the whole run (starting Chromium is the slow part).
  * - A fresh, isolated page for every test, available to tests as `this.page`.
  * - When a test fails, a full-page screenshot goes to screenshots/failures/.
@@ -15,14 +16,19 @@
 
 const config = require('../config/config');
 const { launchBrowser, openPage, closePage } = require('./browser');
-const { takeScreenshot } = require('./screenshots');
+const { clearScreenshots, takeScreenshot } = require('./screenshots');
 
 let browser;
 
 exports.mochaHooks = {
-  beforeAll: async function launchSharedBrowser() {
-    browser = await launchBrowser();
-  },
+  beforeAll: [
+    function clearOldScreenshots() {
+      clearScreenshots();
+    },
+    async function launchSharedBrowser() {
+      browser = await launchBrowser();
+    },
+  ],
 
   beforeEach: async function openFreshPage() {
     this.page = await openPage(browser);

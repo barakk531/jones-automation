@@ -73,6 +73,11 @@ class LandingPage extends BasePage {
     await this.employeesSelect.selectOption({ label: range });
   }
 
+  /** The browser's validation message for a field, or '' when its value is valid. */
+  async validationMessage(name) {
+    return this.field(name).evaluate((input) => input.validationMessage);
+  }
+
   /** Clicks "Request a call back". Whether the page changes is up to the caller to check. */
   async submit() {
     await this.submitButton.click();
