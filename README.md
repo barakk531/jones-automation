@@ -1,7 +1,14 @@
 # Jones Automation — Playwright + Mocha
 
+[![Tests](https://github.com/barakk531/jones-automation/actions/workflows/tests.yml/badge.svg)](https://github.com/barakk531/jones-automation/actions/workflows/tests.yml)
+
 Automated tests for the Acme "Request a call back" form at https://test.netlify.app/,
 built with [Playwright](https://playwright.dev/docs/library) and [Mocha](https://mochajs.org/).
+
+This repository is my solution to the Jones automation exercise:
+
+- **Part 1, the automation:** this project (below).
+- **Part 2, the billing-widget questions:** [ANSWERS.md](ANSWERS.md).
 
 ## Requirements
 
@@ -106,6 +113,12 @@ Invalid values (for example `SLOWMO=fast`) stop the run immediately with a clear
 The shared parts live in [`support/`](support/) and are loaded for every test through
 `.mocharc.js`, so test files contain only test steps.
 
+## Continuous integration
+
+[`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs lint and the full suite on every push
+and pull request. Screenshots, including any failure screenshots, are attached to each run as a
+downloadable artifact.
+
 ## Project structure
 
 ```
@@ -122,6 +135,8 @@ tests/callback-validation.spec.js   required fields and invalid emails
 tests/known-issues.spec.js          bugs found, pending until fixed
 tests/smoke.spec.js                 quick check that the site is up
 docs/before-submit.png              example screenshot from a run
+.github/workflows/tests.yml         CI: lint + tests on every push
+ANSWERS.md                          Part 2: billing-widget answers
 .mocharc.js                         Mocha settings (test files, hooks, timeout)
 eslint.config.js                    lint rules
 ```
