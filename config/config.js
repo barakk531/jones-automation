@@ -56,6 +56,7 @@ const config = {
 
   paths: {
     screenshots: path.join(ROOT_DIR, 'screenshots'),
+    failureScreenshots: path.join(ROOT_DIR, 'screenshots', 'failures'),
   },
 };
 

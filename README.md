@@ -36,3 +36,35 @@ environment variable, so the same code runs locally, against another environment
 | `TEST_TIMEOUT` | `60000` | Max duration of one test (ms) |
 
 Invalid values (for example `SLOWMO=fast`) stop the run immediately with a clear error message.
+
+## How the tests run
+
+- **One browser per run, a fresh page per test.** Chromium starts once (the slow part). Each test
+  gets its own isolated browser context, so no cookies or form state carry over between tests.
+- **Screenshot on failure.** When a test fails, a full-page screenshot is saved to
+  `screenshots/failures/<test name>.png` and its path is printed under the failing test.
+- **Always cleaned up.** Pages and the browser are closed even when a test fails.
+- **Clear setup errors.** If Chromium isn't installed, the run stops with the command that fixes it.
+
+This lives in [`support/`](support/) and is loaded for every test through `.mocharc.js`, so test
+files contain only test steps.
+
+## Project structure
+
+```
+config/config.js         settings: site URL, browser mode, timeouts, paths
+support/browser.js       start the browser, open and close isolated pages
+support/screenshots.js   save screenshots with safe file names
+support/hooks.js         Mocha root hooks that wire it all together
+tests/smoke.spec.js      quick check that the site is up
+```
+
+## Writing a test
+
+Use `function () {}`, not arrow functions, so Mocha can give the test its page as `this.page`:
+
+```js
+it('loads the landing page', async function () {
+  await this.page.goto('/');
+});
+```
