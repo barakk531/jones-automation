@@ -52,19 +52,50 @@ files contain only test steps.
 ## Project structure
 
 ```
-config/config.js         settings: site URL, browser mode, timeouts, paths
-support/browser.js       start the browser, open and close isolated pages
-support/screenshots.js   save screenshots with safe file names
-support/hooks.js         Mocha root hooks that wire it all together
-tests/smoke.spec.js      quick check that the site is up
+config/config.js            settings: site URL, browser mode, timeouts, paths
+data/callbackForm.data.js   test data: a valid lead, the dropdown's ranges
+pages/BasePage.js           what every page object shares: open, wait until loaded, screenshot
+pages/LandingPage.js        the landing page: form selectors and actions
+pages/ThankYouPage.js       the thank-you page: load check, submitted values
+support/browser.js          start the browser, open and close isolated pages
+support/screenshots.js      save screenshots with safe file names
+support/hooks.js            Mocha root hooks that wire it all together
+tests/smoke.spec.js         quick check that the site is up
 ```
+
+Each layer has one job:
+
+| Layer | Knows about | Never contains |
+| --- | --- | --- |
+| `tests/` | what to check, in user language | selectors, URLs, hardcoded data |
+| `pages/` | selectors and actions for one page | assertions |
+| `data/` | input values and expected values | logic |
+| `config/` | environment settings | test logic |
+| `support/` | browser lifecycle, screenshots | anything page-specific |
+
+So when the site's HTML changes, only `pages/` changes. When the data changes, only `data/` changes.
 
 ## Writing a test
 
-Use `function () {}`, not arrow functions, so Mocha can give the test its page as `this.page`:
+Tests use page objects and test data, never raw selectors:
 
 ```js
-it('loads the landing page', async function () {
-  await this.page.goto('/');
+const LandingPage = require('../pages/LandingPage');
+const { validLead } = require('../data/callbackForm.data');
+
+it('fills the call-back form', async function () {
+  const landing = await new LandingPage(this.page).open();
+  await landing.fillForm(validLead);
 });
 ```
+
+Use `function () {}`, not arrow functions, so Mocha can give the test its page as `this.page`.
+
+## Adding a new page
+
+1. Create `pages/MyPage.js` with a class that extends `BasePage`.
+2. In its constructor, set `path`, define the page's selectors once, and set `loadedIndicator`
+   (an element that is visible when the page is ready). Add `urlPattern` if the page is reached by
+   navigation, so `waitUntilLoaded()` also checks the URL.
+3. Add methods for what a user does on that page, named in user language (`submit()`, not
+   `clickButton2()`).
