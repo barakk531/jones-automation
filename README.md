@@ -5,7 +5,7 @@ built with [Playwright](https://playwright.dev/docs/library) and [Mocha](https:/
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/en/download/) 20.19 or newer (`node --version`)
+- [Node.js](https://nodejs.org/en/download/) 20.19+, 22.13+ or 24+ (`node --version`)
 
 ## Install
 
@@ -19,6 +19,7 @@ npx playwright install chromium   # the browser Playwright drives
 ```bash
 npm test             # headless (default)
 npm run test:headed  # visible browser, slowed down to watch
+npm run lint         # check code style and common mistakes (ESLint)
 ```
 
 Expected output:
@@ -58,6 +59,10 @@ Expected output:
 | [`tests/smoke.spec.js`](tests/smoke.spec.js) | The site is up and shows the form. If this fails, check the environment first. |
 
 The bonus step (Number of Employees) runs before the screenshot, so the new value is visible in it.
+Each run saves it to `screenshots/before-submit.png`; an example from a run is in
+[`docs/before-submit.png`](docs/before-submit.png):
+
+![The form filled in, with Number of Employees set to 51-500, just before submitting](docs/before-submit.png)
 
 ## Issues found on the site
 
@@ -116,6 +121,9 @@ tests/callback-request.spec.js      the assignment's flow, step by step
 tests/callback-validation.spec.js   required fields and invalid emails
 tests/known-issues.spec.js          bugs found, pending until fixed
 tests/smoke.spec.js                 quick check that the site is up
+docs/before-submit.png              example screenshot from a run
+.mocharc.js                         Mocha settings (test files, hooks, timeout)
+eslint.config.js                    lint rules
 ```
 
 Each layer has one job:
