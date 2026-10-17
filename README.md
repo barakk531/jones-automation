@@ -12,7 +12,7 @@ This repository is my solution to the Jones automation exercise:
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/en/download/) 20.19+, 22.13+ or 24+ (`node --version`)
+- [Node.js](https://nodejs.org/en/download/) 22.13+ or 24+ (`node --version`)
 
 ## Install
 
@@ -20,6 +20,9 @@ This repository is my solution to the Jones automation exercise:
 npm install                       # Playwright, Mocha, cross-env
 npx playwright install chromium   # the browser Playwright drives
 ```
+
+On Linux, use `npx playwright install --with-deps chromium` instead. It also installs the system
+libraries Chromium needs (this is what CI runs).
 
 ## Run
 
@@ -61,7 +64,7 @@ Expected output:
 | File | What it checks |
 | --- | --- |
 | [`tests/callback-request.spec.js`](tests/callback-request.spec.js) | The assignment's flow: fill Name, Email, Phone, Company and Website → change Number of Employees from 1-10 to 51-500 → screenshot (`screenshots/before-submit.png`) → click "Request a call back" → reach the thank-you page and log it to the console. Every step is checked, including that the thank-you page received exactly the data that was typed. |
-| [`tests/callback-validation.spec.js`](tests/callback-validation.spec.js) | Each required field left empty, and three invalid emails: the field shows a validation message, the form does not submit, and the typed values are kept. |
+| [`tests/callback-validation.spec.js`](tests/callback-validation.spec.js) | Each required field left empty, and three invalid emails: the field shows a validation message, submitting is blocked and moves focus to that field, and the typed values are kept. |
 | [`tests/known-issues.spec.js`](tests/known-issues.spec.js) | The bugs below, written as tests of the correct behaviour and marked pending (`it.skip`) so the suite stays green. Removing `.skip` once a bug is fixed turns the test into a regression check. |
 | [`tests/smoke.spec.js`](tests/smoke.spec.js) | The site is up and shows the form. If this fails, check the environment first. |
 
@@ -88,14 +91,16 @@ environment variable, so the same code runs locally, against another environment
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `BASE_URL` | `https://test.netlify.app/` | Site under test |
-| `HEADED` | off | `1` opens a visible browser |
+| `BASE_URL` | `https://test.netlify.app/` | Site under test (http or https; a sub-path such as `/staging/` is kept) |
+| `HEADED` | off | `1` or `true` opens a visible browser |
 | `SLOWMO` | `0` | Pause between browser actions (ms) |
 | `ACTION_TIMEOUT` | `10000` | Max wait for a click / fill / select (ms) |
 | `NAVIGATION_TIMEOUT` | `30000` | Max wait for a page load or URL change (ms) |
 | `TEST_TIMEOUT` | `60000` | Max duration of one test (ms) |
 
-Invalid values (for example `SLOWMO=fast`) stop the run immediately with a clear error message.
+Invalid values stop the run immediately with a clear error message: for example `SLOWMO=fast`,
+`HEADED=yes`, `BASE_URL=localhost:3000` (no `http://`), a timeout of `0` (which would mean "wait
+forever"), or a `TEST_TIMEOUT` too short to fit one page load plus one action.
 
 ## How the tests run
 
@@ -115,9 +120,14 @@ The shared parts live in [`support/`](support/) and are loaded for every test th
 
 ## Continuous integration
 
-[`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs lint and the full suite on every push
-and pull request. Screenshots, including any failure screenshots, are attached to each run as a
+[`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs lint and the full suite on Node 22
+and 24, for every push to `main` and every pull request. Tests still run when lint fails, so one push
+reports both. The workflow has a read-only token, a 15-minute limit, and cancels a run when a newer
+push replaces it. Screenshots, including any failure screenshots, are attached to each run as a
 downloadable artifact.
+
+The suite tests the live site, so a run can also fail when https://test.netlify.app/ itself is down.
+The smoke test makes that easy to recognise.
 
 ## Project structure
 

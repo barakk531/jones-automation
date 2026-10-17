@@ -12,7 +12,7 @@ class ThankYouPage extends BasePage {
   /** @param {import('playwright').Page} page */
   constructor(page) {
     super(page);
-    this.path = '/thank-you.html';
+    this.path = 'thank-you.html';
     this.urlPattern = /\/thank-you\.html/;
     this.heading = page.getByRole('heading', { name: 'Thank You!' });
 
@@ -20,19 +20,14 @@ class ThankYouPage extends BasePage {
   }
 
   /**
-   * The submitted form values, read from the URL query string. Keys match the
-   * test data, so the site's internal name "number_of_employees" stays here.
+   * Every submitted form value, read from the URL query string. The site's
+   * internal name "number_of_employees" becomes "employees", so the keys match
+   * the test data. A new form field shows up here without any change.
    */
   submittedValues() {
-    const params = new URL(this.page.url()).searchParams;
-    return {
-      name: params.get('name'),
-      email: params.get('email'),
-      phone: params.get('phone'),
-      company: params.get('company'),
-      website: params.get('website'),
-      employees: params.get('number_of_employees'),
-    };
+    const params = Object.fromEntries(new URL(this.page.url()).searchParams);
+    const { number_of_employees: employees, ...fields } = params;
+    return { ...fields, employees };
   }
 }
 

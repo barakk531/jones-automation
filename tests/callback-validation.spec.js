@@ -1,6 +1,6 @@
 /**
- * Validation: the form must refuse incomplete or malformed input, tell the
- * user which field is wrong, and keep what they already typed.
+ * Validation: the form must refuse incomplete or malformed input, point the
+ * user to the field that is wrong, and keep what they already typed.
  *
  * The form relies on the browser's built-in validation (`required`,
  * `type="email"`). The tests check that a validation message exists, not its
@@ -20,10 +20,12 @@ async function expectSubmissionBlocked(page, lead, invalidField) {
   // submit and navigate away, and this is the message the failure should show.
   assert.notEqual(await landing.validationMessage(invalidField), '', `"${invalidField}" should show a validation message`);
 
-  const urlBefore = landing.url();
   await landing.submit();
 
-  assert.equal(landing.url(), urlBefore, 'The page should not change');
+  // When the browser blocks a submit, it moves focus to the first invalid field
+  // as part of the click itself. So this proves the submit was blocked without
+  // racing a navigation that might not have started yet.
+  assert.ok(await landing.isFocused(invalidField), `Submitting should move focus to "${invalidField}"`);
   assert.deepEqual(await landing.formValues(), lead, 'The typed values should be kept');
 }
 

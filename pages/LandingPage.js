@@ -12,7 +12,7 @@ class LandingPage extends BasePage {
   /** @param {import('playwright').Page} page */
   constructor(page) {
     super(page);
-    this.path = '/';
+    this.path = './';
 
     // Text fields, keyed by the same names the test data uses.
     this.fields = {
@@ -30,11 +30,10 @@ class LandingPage extends BasePage {
 
   /** Returns a text field's locator. Fails clearly on an unknown name, e.g. a typo in test data. */
   field(name) {
-    const locator = this.fields[name];
-    if (!locator) {
+    if (!Object.hasOwn(this.fields, name)) {
       throw new Error(`Unknown form field "${name}". Known fields: ${Object.keys(this.fields).join(', ')}.`);
     }
-    return locator;
+    return this.fields[name];
   }
 
   /** Types each value of `lead` into its field. Fields missing from `lead` are left untouched. */
@@ -76,6 +75,11 @@ class LandingPage extends BasePage {
   /** The browser's validation message for a field, or '' when its value is valid. */
   async validationMessage(name) {
     return this.field(name).evaluate((input) => input.validationMessage);
+  }
+
+  /** Whether a field currently has keyboard focus. */
+  async isFocused(name) {
+    return this.field(name).evaluate((input) => input === input.ownerDocument.activeElement);
   }
 
   /** Clicks "Request a call back". Whether the page changes is up to the caller to check. */

@@ -6,7 +6,8 @@
  * When the site's HTML changes, only the page object needs updating.
  *
  * Each page object sets these in its constructor:
- *   path            where open() navigates, relative to config.baseUrl
+ *   path            where open() navigates, relative to config.baseUrl. No
+ *                   leading "/", so a base URL with a sub-path keeps it.
  *   loadedIndicator an element that is visible once the page is ready
  *   urlPattern      (optional) a RegExp the URL must match once the page is ready
  */

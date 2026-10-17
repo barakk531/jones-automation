@@ -20,7 +20,7 @@ describe('Known issues (pending until fixed)', function () {
 
     const sent = (await new ThankYouPage(this.page).waitUntilLoaded()).submittedValues();
     for (const field of ['name', 'email', 'phone']) {
-      assert.equal(sent[field], null, `${field} should not appear in the thank-you page URL`);
+      assert.equal(sent[field], undefined, `${field} should not appear in the thank-you page URL`);
     }
   });
 

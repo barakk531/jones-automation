@@ -7,9 +7,17 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../config/config');
 
-/** Deletes screenshots from earlier runs, so every file in the folder comes from this run. */
+/**
+ * Deletes screenshots from earlier runs, so every file in the folder comes from
+ * this run. A file locked by another program (e.g. open in an image viewer on
+ * Windows) is retried, then reported as a warning instead of stopping the run.
+ */
 function clearScreenshots() {
-  fs.rmSync(config.paths.screenshots, { recursive: true, force: true });
+  try {
+    fs.rmSync(config.paths.screenshots, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+  } catch (error) {
+    console.warn(`Could not clear old screenshots (${error.code}): ${error.message}`);
+  }
 }
 
 /** Turns any text into a safe file name: "Form: submits OK!" -> "form-submits-ok". */

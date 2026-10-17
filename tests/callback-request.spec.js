@@ -26,6 +26,7 @@ describe('Request a call back', function () {
     assert.deepEqual(await landing.formValues(), validLead, 'The fields should hold the typed values');
 
     // Step 2 (bonus): change Number of Employees from 1-10 to 51-500.
+    assert.deepEqual(await landing.employeeOptions(), employees.options, 'The dropdown should offer the expected ranges');
     assert.equal(await landing.selectedEmployees(), employees.default, 'Employees should start at the default range');
     await landing.selectEmployees(employees.target);
     assert.equal(await landing.selectedEmployees(), employees.target, 'Employees should show the new range');
