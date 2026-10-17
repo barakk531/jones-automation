@@ -9,18 +9,20 @@
 
 const assert = require('node:assert/strict');
 const LandingPage = require('../pages/LandingPage');
-const ThankYouPage = require('../pages/ThankYouPage');
 const { validLead, invalidPhone } = require('../data/callbackForm.data');
 
 describe('Known issues (pending until fixed)', function () {
   it.skip('#1 does not put personal data in the URL when the form is submitted', async function () {
     const landing = await new LandingPage(this.page).open();
     await landing.fillForm(validLead);
-    await landing.submit();
 
-    const urlParams = (await new ThankYouPage(this.page).waitUntilLoaded()).urlParams();
+    // The request the browser sends, not the page it ends up on: a redirect
+    // that hides the query string afterwards would not fix the leak.
+    const { url } = await landing.submitAndCaptureRequest();
+
+    const urlParams = new URL(url).searchParams;
     for (const field of ['name', 'email', 'phone']) {
-      assert.equal(urlParams[field], undefined, `${field} should not appear in the thank-you page URL`);
+      assert.equal(urlParams.has(field), false, `${field} should not appear in the request URL`);
     }
   });
 

@@ -86,11 +86,12 @@ Severity scale used below: **Critical / High / Medium / Low**.
 
 ### Performance
 A static mock-up can't be timed, but its design points to these risks:
-- **No loading state on Continue — Medium.** Authorizing a card (a gateway round trip, possibly a 3-D
-  Secure challenge) can take several seconds. With no spinner or disabled button, a slow response looks
-  like nothing happened, so users click again: a performance problem that becomes a **double-charge** risk.
-- **Validation only on submit — Medium.** No inline checks are shown, so every typo (card number, expiry,
-  postal code) costs a full server round trip to discover.
+- **Slow card authorization with no feedback.** Authorizing a card (a gateway round trip, possibly a 3-D
+  Secure challenge) can take several seconds. With no spinner or disabled Continue button, a slow response
+  looks like nothing happened, so users click again. This is the performance side of the High
+  "no submit feedback → double charge" finding under Functional.
+- **Where validation runs — Medium.** If the checks run only on the server, every typo (card number,
+  expiry, postal code) costs a round trip to discover. Checking formats inline, in the browser, avoids it.
 - **Long, static dropdowns — Low.** "Select a state" (and a future country list with per-country regions)
   should load only the regions for the selected country, not one large list; the Year list should cover
   only the next ~15 years.
@@ -133,16 +134,18 @@ Format: **ID · Title · Preconditions · Steps · Test Data · Expected Result 
   data is preserved.
 - **Priority/Type:** High · Negative / Validation.
 
-### TC-03 — Card number format and checksum (Luhn)
-- **Preconditions:** On the form; every other field filled with valid data (as in TC-01).
-- **Steps:** For each card number below, enter it, click **Continue**, and check the result.
+### TC-03 — Invalid card details are rejected (format, checksum, expiry)
+- **Preconditions:** On the form, with the valid data from TC-01.
+- **Steps:** For each row below, start from the TC-01 data, change only that one input, click
+  **Continue**, and check the result. Each row has a single cause, so the result shows which check fired.
 - **Test Data and Expected Result:**
 
-| Card number | Expected result |
+| Input changed | Expected result |
 | --- | --- |
-| `4111 1111 1111 1111` (valid, with spaces) | Accepted: the spaces are stripped automatically (part a: the form should not reject them) |
-| `4111111111111112` (digits only, fails the Luhn checksum) | Rejected inline with "Card number is not valid"; no authorization is attempted |
-| `4111abcd11111111` (contains letters) | Rejected inline: letters are not allowed; no authorization is attempted |
+| Card `4111 1111 1111 1111` (valid, with spaces) | Accepted: the spaces are stripped automatically (part a: the form should not reject them) |
+| Card `4111111111111112` (digits only, fails the Luhn checksum) | Rejected inline with "Card number is not valid"; no authorization is attempted |
+| Card `4111abcd11111111` (contains letters) | Rejected inline: letters are not allowed; no authorization is attempted |
+| Expiration = the month before the current one | Rejected inline with "This card has expired"; no authorization is attempted |
 
 - **Priority/Type:** High · Negative / Validation-Security.
 

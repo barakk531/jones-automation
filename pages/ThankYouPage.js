@@ -14,11 +14,6 @@ class ThankYouPage extends BasePage {
 
     this.loadedIndicator = this.heading;
   }
-
-  /** The query-string parameters in this page's URL, as a plain object. */
-  urlParams() {
-    return Object.fromEntries(new URL(this.page.url()).searchParams);
-  }
 }
 
 module.exports = ThankYouPage;

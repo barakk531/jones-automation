@@ -92,7 +92,7 @@ environment variable, so the same code runs locally, against another environment
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `BASE_URL` | `https://test.netlify.app/` | Site under test (http or https; a sub-path such as `/staging/` is kept) |
+| `BASE_URL` | `https://test.netlify.app/` | Site under test: http or https, ending in `/` (a sub-path such as `/staging/` is kept) |
 | `HEADED` | off | `1` or `true` opens a visible browser |
 | `SLOWMO` | `0` | Pause between browser actions (ms) |
 | `ACTION_TIMEOUT` | `10000` | Max wait for a click / fill / select (ms) |
@@ -100,7 +100,7 @@ environment variable, so the same code runs locally, against another environment
 | `TEST_TIMEOUT` | `60000` | Max duration of one test (ms) |
 
 Invalid values stop the run immediately with a clear error message: for example `SLOWMO=fast`,
-`HEADED=yes`, `BASE_URL=localhost:3000` (no `http://`), a `BASE_URL` pointing at a page such as `/index.html`, a timeout of `0` (which would mean "wait
+`HEADED=yes`, `BASE_URL=localhost:3000` (no `http://`), a `BASE_URL` that doesn't end with `/` (such as `…/index.html`), a timeout of `0` (which would mean "wait
 forever"), or a `TEST_TIMEOUT` too short to fit one page load plus one action.
 
 ## How the tests run
@@ -137,7 +137,7 @@ config/config.js                    settings: site URL, browser mode, timeouts, 
 data/callbackForm.data.js           test data: a valid lead, invalid inputs, dropdown ranges
 pages/BasePage.js                   shared by all page objects: open, wait until loaded, screenshot
 pages/LandingPage.js                the landing page: form selectors and actions
-pages/ThankYouPage.js               the thank-you page: load check, URL parameters
+pages/ThankYouPage.js               the thank-you page: load check
 support/browser.js                  start the browser, open and close isolated pages
 support/screenshots.js              save and clear screenshots
 support/hooks.js                    Mocha root hooks that wire it all together

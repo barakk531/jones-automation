@@ -13,11 +13,11 @@ on:
 permissions:
   contents: read
 
-# A newer push to a pull request cancels the run it replaces. Runs on main are
-# never cancelled, so every commit on main gets a result.
+# A newer push to a pull request cancels the run it replaces. Each run on main
+# gets its own group, so no commit on main is ever cancelled or skipped.
 concurrency:
-  group: tests-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: tests-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   test:

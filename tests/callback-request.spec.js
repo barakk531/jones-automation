@@ -35,7 +35,7 @@ describe('Request a call back', function () {
     assert.ok(fs.existsSync(screenshotPath), `The screenshot should be saved at ${screenshotPath}`);
 
     // Step 4: click "Request a call back", capturing what the browser sends.
-    const sentValues = await landing.submitAndCaptureSentValues();
+    const submission = await landing.submitAndCaptureRequest();
 
     // Step 5: confirm the thank-you page and log it.
     const thankYou = await new ThankYouPage(this.page).waitUntilLoaded();
@@ -43,7 +43,7 @@ describe('Request a call back', function () {
 
     // And the browser sent exactly what was entered.
     assert.deepEqual(
-      sentValues,
+      submission.values,
       { ...validLead, employees: employees.target },
       'The submitted values should match what was entered',
     );

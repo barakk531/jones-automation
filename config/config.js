@@ -15,9 +15,10 @@ const path = require('path');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 
-// Node's timers overflow above this (about 24.8 days), and Mocha treats larger
-// timeouts as "no timeout", so bigger values are rejected too.
-const MAX_MS = 2_147_483_647;
+// No wait in this suite should come close to an hour, so anything longer is
+// treated as a typo. (Far larger values also overflow Node's timers, and Mocha
+// reads its maximum as "no timeout at all".)
+const MAX_MS = 3_600_000;
 
 /** Reads a whole number of milliseconds (min..MAX_MS) from an env var, or returns the default when unset. */
 function msFromEnv(name, defaultValue, { min = 0 } = {}) {
@@ -39,12 +40,14 @@ function flagFromEnv(name) {
 }
 
 /**
- * Reads the site's base address from an env var and checks it is an http(s)
- * URL of a folder, not a page. Page paths are relative, so the base always
- * ends with "/": that keeps a sub-path such as https://host/staging/.
+ * Reads the site's base address from an env var. It must be an http(s) URL
+ * ending in "/": page paths are relative to it, and the "/" is what keeps a
+ * sub-path such as https://host/staging/. Set-but-blank is an error, not a
+ * silent fallback to the default site.
  */
 function urlFromEnv(name, defaultValue) {
-  const value = (process.env[name] || '').trim() || defaultValue;
+  const raw = process.env[name];
+  const value = raw === undefined ? defaultValue : raw.trim();
   let url;
   try {
     url = new URL(value);
@@ -54,13 +57,8 @@ function urlFromEnv(name, defaultValue) {
   if (!url || !['http:', 'https:'].includes(url.protocol)) {
     throw new Error(`Invalid ${name}="${value}": expected an http(s) URL such as https://test.netlify.app/`);
   }
-
-  const lastSegment = url.pathname.split('/').pop();
-  if (lastSegment.includes('.')) {
-    throw new Error(`Invalid ${name}="${value}": expected the site's base address, not a page ("${lastSegment}").`);
-  }
   if (!url.pathname.endsWith('/')) {
-    url.pathname += '/';
+    throw new Error(`Invalid ${name}="${value}": the site's base address must end with "/", e.g. https://host/staging/`);
   }
   return url.href;
 }

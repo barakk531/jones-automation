@@ -8,6 +8,23 @@
 
 const BasePage = require('./BasePage');
 
+/**
+ * Turns submitted form data into an object keyed like the test data. A field
+ * sent more than once fails loudly, since the server might read the wrong copy.
+ */
+function readSentValues(formData) {
+  const values = {};
+  for (const [key, value] of new URLSearchParams(formData)) {
+    if (Object.hasOwn(values, key)) {
+      throw new Error(`The form sent "${key}" more than once.`);
+    }
+    values[key] = value;
+  }
+  // The site calls the dropdown "number_of_employees"; the test data calls it "employees".
+  const { number_of_employees: employees, ...fields } = values;
+  return { ...fields, employees };
+}
+
 class LandingPage extends BasePage {
   /** @param {import('playwright').Page} page */
   constructor(page) {
@@ -88,21 +105,32 @@ class LandingPage extends BasePage {
   }
 
   /**
-   * Clicks "Request a call back" and returns the values the browser sent,
-   * keyed like the test data. Works whether the form uses GET (values in the
-   * URL) or POST (values in the request body), so it keeps working if the site
-   * fixes known issue #1 by switching to POST.
+   * Clicks "Request a call back" and returns the request the browser sent:
+   * its method, its URL, and its values keyed like the test data.
+   *
+   * Values are read from the URL for GET and from the body for POST, so checks
+   * keep working if the site fixes known issue #1 by switching to POST. This
+   * covers standard HTML form submissions (URL-encoded); any other body type
+   * stops with a clear error instead of a misleading comparison.
    */
-  async submitAndCaptureSentValues() {
+  async submitAndCaptureRequest() {
     const [request] = await Promise.all([
       this.page.waitForRequest((req) => req.isNavigationRequest() && req.frame() === this.page.mainFrame()),
       this.submit(),
     ]);
-    const data = request.method() === 'GET' ? new URL(request.url()).search : request.postData() || '';
 
-    // The site calls the dropdown "number_of_employees"; the test data calls it "employees".
-    const { number_of_employees: employees, ...fields } = Object.fromEntries(new URLSearchParams(data));
-    return { ...fields, employees };
+    const method = request.method();
+    let formData;
+    if (method === 'GET') {
+      formData = new URL(request.url()).search;
+    } else {
+      const contentType = (await request.headerValue('content-type')) || 'no content type';
+      if (!contentType.startsWith('application/x-www-form-urlencoded')) {
+        throw new Error(`The form was sent as ${method} with "${contentType}"; only GET and URL-encoded POST are supported.`);
+      }
+      formData = request.postData() || '';
+    }
+    return { method, url: request.url(), values: readSentValues(formData) };
   }
 }
 
