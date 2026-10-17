@@ -85,9 +85,21 @@ Severity scale used below: **Critical / High / Medium / Low**.
   dropdowns, and errors announced via `aria-live`.
 
 ### Performance
-Limited to infer from a static mock — I would **measure rather than invent**: inline-validation latency,
-submit round-trip time (and whether **Continue** locks to prevent double-charge), the weight and blocking
-behavior of any third-party payment/analytics scripts, and the form's time-to-interactive.
+A static mock-up can't be timed, but its design points to these risks:
+- **No loading state on Continue — Medium.** Authorizing a card (a gateway round trip, possibly a 3-D
+  Secure challenge) can take several seconds. With no spinner or disabled button, a slow response looks
+  like nothing happened, so users click again: a performance problem that becomes a **double-charge** risk.
+- **Validation only on submit — Medium.** No inline checks are shown, so every typo (card number, expiry,
+  postal code) costs a full server round trip to discover.
+- **Long, static dropdowns — Low.** "Select a state" (and a future country list with per-country regions)
+  should load only the regions for the selected country, not one large list; the Year list should cover
+  only the next ~15 years.
+- **Third-party scripts — Low/Medium.** Payment SDKs and fraud/analytics scripts can block rendering; they
+  should load asynchronously so the form is usable quickly.
+
+What I would measure: time from Continue to a visible response (feedback within ~300 ms) and to the final
+result, inline-validation latency, time-to-interactive on a slow mobile connection, and the weight of
+third-party scripts.
 
 ---
 
@@ -121,24 +133,18 @@ Format: **ID · Title · Preconditions · Steps · Test Data · Expected Result 
   data is preserved.
 - **Priority/Type:** High · Negative / Validation.
 
-### TC-03 — Card-number format, Luhn, and expired date (security/format)
-- **Preconditions:** On the form.
-- **Steps:** Enter a card number containing spaces/dashes and a non-numeric character; select a past
-  expiration; click **Continue**.
-- **Test Data:** Card `4111-1111 1111abc`, Exp `01 / 2020` (past).
-- **Expected Result:** The form either auto-strips separators and validates via Luhn, **or** shows a clear
-  format error; non-numeric input is rejected; the expired date is rejected with a clear message. No
-  successful authorization occurs with invalid/expired data. (This case also surfaces the missing-CVV gap:
-  a real gateway would likely decline without it.)
-- **Priority/Type:** High · Negative / Security-Validation.
+### TC-03 — Card number format and checksum (Luhn)
+- **Preconditions:** On the form; every other field filled with valid data (as in TC-01).
+- **Steps:** For each card number below, enter it, click **Continue**, and check the result.
+- **Test Data and Expected Result:**
 
-### TC-04 *(optional)* — Internationalization
-- **Preconditions:** On the form.
-- **Steps:** Attempt to pay as a non-US customer (e.g. UK).
-- **Expected Result:** A Country selector is present and, when set to the UK, State/Province becomes
-  optional/relabeled, postal-code validation accepts `SW1A 1AA`, and the amount shows an explicit
-  currency. *(Currently fails — see part a, Internationalization.)*
-- **Priority/Type:** High · Negative / i18n.
+| Card number | Expected result |
+| --- | --- |
+| `4111 1111 1111 1111` (valid, with spaces) | Accepted: the spaces are stripped automatically (part a: the form should not reject them) |
+| `4111111111111112` (digits only, fails the Luhn checksum) | Rejected inline with "Card number is not valid"; no authorization is attempted |
+| `4111abcd11111111` (contains letters) | Rejected inline: letters are not allowed; no authorization is attempted |
+
+- **Priority/Type:** High · Negative / Validation-Security.
 
 ---
 

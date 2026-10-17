@@ -86,6 +86,24 @@ class LandingPage extends BasePage {
   async submit() {
     await this.submitButton.click();
   }
+
+  /**
+   * Clicks "Request a call back" and returns the values the browser sent,
+   * keyed like the test data. Works whether the form uses GET (values in the
+   * URL) or POST (values in the request body), so it keeps working if the site
+   * fixes known issue #1 by switching to POST.
+   */
+  async submitAndCaptureSentValues() {
+    const [request] = await Promise.all([
+      this.page.waitForRequest((req) => req.isNavigationRequest() && req.frame() === this.page.mainFrame()),
+      this.submit(),
+    ]);
+    const data = request.method() === 'GET' ? new URL(request.url()).search : request.postData() || '';
+
+    // The site calls the dropdown "number_of_employees"; the test data calls it "employees".
+    const { number_of_employees: employees, ...fields } = Object.fromEntries(new URLSearchParams(data));
+    return { ...fields, employees };
+  }
 }
 
 module.exports = LandingPage;

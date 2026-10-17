@@ -15,13 +15,17 @@ const path = require('path');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
 
-/** Reads a whole number of milliseconds (at least `min`) from an env var, or returns the default when unset. */
+// Node's timers overflow above this (about 24.8 days), and Mocha treats larger
+// timeouts as "no timeout", so bigger values are rejected too.
+const MAX_MS = 2_147_483_647;
+
+/** Reads a whole number of milliseconds (min..MAX_MS) from an env var, or returns the default when unset. */
 function msFromEnv(name, defaultValue, { min = 0 } = {}) {
   const raw = (process.env[name] || '').trim();
   if (raw === '') return defaultValue;
 
-  if (!/^\d+$/.test(raw) || Number(raw) < min) {
-    throw new Error(`Invalid ${name}="${raw}": expected a whole number of milliseconds, at least ${min}.`);
+  if (!/^\d+$/.test(raw) || Number(raw) < min || Number(raw) > MAX_MS) {
+    throw new Error(`Invalid ${name}="${raw}": expected a whole number of milliseconds from ${min} to ${MAX_MS}.`);
   }
   return Number(raw);
 }
@@ -35,12 +39,12 @@ function flagFromEnv(name) {
 }
 
 /**
- * Reads the base URL from an env var and checks it is an http(s) URL.
- * Page paths are relative, so the base always ends with "/": that keeps a
- * sub-path such as https://host/staging/ instead of dropping it.
+ * Reads the site's base address from an env var and checks it is an http(s)
+ * URL of a folder, not a page. Page paths are relative, so the base always
+ * ends with "/": that keeps a sub-path such as https://host/staging/.
  */
 function urlFromEnv(name, defaultValue) {
-  const value = process.env[name] || defaultValue;
+  const value = (process.env[name] || '').trim() || defaultValue;
   let url;
   try {
     url = new URL(value);
@@ -49,6 +53,11 @@ function urlFromEnv(name, defaultValue) {
   }
   if (!url || !['http:', 'https:'].includes(url.protocol)) {
     throw new Error(`Invalid ${name}="${value}": expected an http(s) URL such as https://test.netlify.app/`);
+  }
+
+  const lastSegment = url.pathname.split('/').pop();
+  if (lastSegment.includes('.')) {
+    throw new Error(`Invalid ${name}="${value}": expected the site's base address, not a page ("${lastSegment}").`);
   }
   if (!url.pathname.endsWith('/')) {
     url.pathname += '/';

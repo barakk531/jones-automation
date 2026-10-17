@@ -18,9 +18,9 @@ describe('Known issues (pending until fixed)', function () {
     await landing.fillForm(validLead);
     await landing.submit();
 
-    const sent = (await new ThankYouPage(this.page).waitUntilLoaded()).submittedValues();
+    const urlParams = (await new ThankYouPage(this.page).waitUntilLoaded()).urlParams();
     for (const field of ['name', 'email', 'phone']) {
-      assert.equal(sent[field], undefined, `${field} should not appear in the thank-you page URL`);
+      assert.equal(urlParams[field], undefined, `${field} should not appear in the thank-you page URL`);
     }
   });
 

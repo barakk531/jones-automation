@@ -13,10 +13,11 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same branch cancels the run it replaces.
+# A newer push to a pull request cancels the run it replaces. Runs on main are
+# never cancelled, so every commit on main gets a result.
 concurrency:
   group: tests-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -52,7 +53,8 @@ jobs:
         run: npm test
 
       - name: Upload screenshots
-        if: ${{ !cancelled() }}
+        # always(): also after a timeout or cancellation, when failure screenshots matter most.
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: screenshots-node-${{ matrix.node }}

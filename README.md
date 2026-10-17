@@ -38,6 +38,7 @@ Expected output:
   Request a call back
       Reached the thank-you page: https://test.netlify.app/thank-you.html?name=Jane+Tester&...
     ✔ submits a valid lead and reaches the thank-you page
+    ✔ offers the expected Number of Employees ranges
 
   Request a call back: validation
     ✔ blocks submission when name is empty
@@ -55,7 +56,7 @@ Expected output:
   Smoke
     ✔ loads the landing page with the call-back form
 
-  8 passing (12s)
+  9 passing (12s)
   3 pending
 ```
 
@@ -63,7 +64,7 @@ Expected output:
 
 | File | What it checks |
 | --- | --- |
-| [`tests/callback-request.spec.js`](tests/callback-request.spec.js) | The assignment's flow: fill Name, Email, Phone, Company and Website → change Number of Employees from 1-10 to 51-500 → screenshot (`screenshots/before-submit.png`) → click "Request a call back" → reach the thank-you page and log it to the console. Every step is checked, including that the thank-you page received exactly the data that was typed. |
+| [`tests/callback-request.spec.js`](tests/callback-request.spec.js) | The assignment's flow: fill Name, Email, Phone, Company and Website → change Number of Employees from 1-10 to 51-500 → screenshot (`screenshots/before-submit.png`) → click "Request a call back" → reach the thank-you page and log it to the console. Every step is checked, including that the browser sent exactly the data that was typed (read from the request itself, so it works whether the form uses GET or POST). A second test checks that the dropdown offers the four expected ranges. |
 | [`tests/callback-validation.spec.js`](tests/callback-validation.spec.js) | Each required field left empty, and three invalid emails: the field shows a validation message, submitting is blocked and moves focus to that field, and the typed values are kept. |
 | [`tests/known-issues.spec.js`](tests/known-issues.spec.js) | The bugs below, written as tests of the correct behaviour and marked pending (`it.skip`) so the suite stays green. Removing `.skip` once a bug is fixed turns the test into a regression check. |
 | [`tests/smoke.spec.js`](tests/smoke.spec.js) | The site is up and shows the form. If this fails, check the environment first. |
@@ -99,7 +100,7 @@ environment variable, so the same code runs locally, against another environment
 | `TEST_TIMEOUT` | `60000` | Max duration of one test (ms) |
 
 Invalid values stop the run immediately with a clear error message: for example `SLOWMO=fast`,
-`HEADED=yes`, `BASE_URL=localhost:3000` (no `http://`), a timeout of `0` (which would mean "wait
+`HEADED=yes`, `BASE_URL=localhost:3000` (no `http://`), a `BASE_URL` pointing at a page such as `/index.html`, a timeout of `0` (which would mean "wait
 forever"), or a `TEST_TIMEOUT` too short to fit one page load plus one action.
 
 ## How the tests run
@@ -122,8 +123,8 @@ The shared parts live in [`support/`](support/) and are loaded for every test th
 
 [`.github/workflows/tests.yml`](.github/workflows/tests.yml) runs lint and the full suite on Node 22
 and 24, for every push to `main` and every pull request. Tests still run when lint fails, so one push
-reports both. The workflow has a read-only token, a 15-minute limit, and cancels a run when a newer
-push replaces it. Screenshots, including any failure screenshots, are attached to each run as a
+reports both. The workflow has a read-only token and a 15-minute limit, and cancels a pull-request run
+when a newer push replaces it (runs on `main` are never cancelled). Screenshots, including any failure screenshots, are attached to each run as a
 downloadable artifact.
 
 The suite tests the live site, so a run can also fail when https://test.netlify.app/ itself is down.
@@ -136,7 +137,7 @@ config/config.js                    settings: site URL, browser mode, timeouts, 
 data/callbackForm.data.js           test data: a valid lead, invalid inputs, dropdown ranges
 pages/BasePage.js                   shared by all page objects: open, wait until loaded, screenshot
 pages/LandingPage.js                the landing page: form selectors and actions
-pages/ThankYouPage.js               the thank-you page: load check, submitted values
+pages/ThankYouPage.js               the thank-you page: load check, URL parameters
 support/browser.js                  start the browser, open and close isolated pages
 support/screenshots.js              save and clear screenshots
 support/hooks.js                    Mocha root hooks that wire it all together

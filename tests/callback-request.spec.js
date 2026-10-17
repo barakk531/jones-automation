@@ -26,7 +26,6 @@ describe('Request a call back', function () {
     assert.deepEqual(await landing.formValues(), validLead, 'The fields should hold the typed values');
 
     // Step 2 (bonus): change Number of Employees from 1-10 to 51-500.
-    assert.deepEqual(await landing.employeeOptions(), employees.options, 'The dropdown should offer the expected ranges');
     assert.equal(await landing.selectedEmployees(), employees.default, 'Employees should start at the default range');
     await landing.selectEmployees(employees.target);
     assert.equal(await landing.selectedEmployees(), employees.target, 'Employees should show the new range');
@@ -35,16 +34,24 @@ describe('Request a call back', function () {
     const screenshotPath = await landing.screenshot('before-submit');
     assert.ok(fs.existsSync(screenshotPath), `The screenshot should be saved at ${screenshotPath}`);
 
-    // Step 4: click "Request a call back".
-    await landing.submit();
+    // Step 4: click "Request a call back", capturing what the browser sends.
+    const sentValues = await landing.submitAndCaptureSentValues();
 
-    // Step 5: confirm the thank-you page, with exactly the data that was entered, and log it.
+    // Step 5: confirm the thank-you page and log it.
     const thankYou = await new ThankYouPage(this.page).waitUntilLoaded();
+    console.log(`      Reached the thank-you page: ${thankYou.url()}`);
+
+    // And the browser sent exactly what was entered.
     assert.deepEqual(
-      thankYou.submittedValues(),
+      sentValues,
       { ...validLead, employees: employees.target },
       'The submitted values should match what was entered',
     );
-    console.log(`      Reached the thank-you page: ${thankYou.url()}`);
+  });
+
+  it('offers the expected Number of Employees ranges', async function () {
+    const landing = await new LandingPage(this.page).open();
+
+    assert.deepEqual(await landing.employeeOptions(), employees.options, 'The dropdown should offer the expected ranges');
   });
 });
