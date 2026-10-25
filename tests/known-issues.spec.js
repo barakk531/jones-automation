@@ -1,7 +1,7 @@
 /**
  * Known issues found while testing the site (details in README, "Issues found").
  *
- * Each test describes the CORRECT behaviour, so it fails today. They are
+ * Each test describes the CORRECT behavior, so it fails today. They are
  * marked pending with it.skip(): the suite stays green, the report still lists
  * them, and when a bug is fixed, removing .skip turns its test into a
  * regression check.

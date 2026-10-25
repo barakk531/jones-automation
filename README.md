@@ -1,4 +1,4 @@
-# Jones Automation — Playwright + Mocha
+# Jones Automation: Playwright + Mocha
 
 [![Tests](https://github.com/barakk531/jones-automation/actions/workflows/tests.yml/badge.svg)](https://github.com/barakk531/jones-automation/actions/workflows/tests.yml)
 
@@ -7,8 +7,8 @@ built with [Playwright](https://playwright.dev/docs/library) and [Mocha](https:/
 
 This repository is my solution to the Jones automation exercise:
 
-- **Part 1, the automation:** this project (below).
-- **Part 2, the billing-widget questions:** [ANSWERS.md](ANSWERS.md).
+- Part 1, the automation: this project (below).
+- Part 2, the billing-widget questions: [ANSWERS.md](ANSWERS.md).
 
 ## Requirements
 
@@ -66,7 +66,7 @@ Expected output:
 | --- | --- |
 | [`tests/callback-request.spec.js`](tests/callback-request.spec.js) | The assignment's flow: fill Name, Email, Phone, Company and Website → change Number of Employees from 1-10 to 51-500 → screenshot (`screenshots/before-submit.png`) → click "Request a call back" → reach the thank-you page and log it to the console. Every step is checked, including that the browser sent exactly the data that was typed (read from the request itself, so it works whether the form uses GET or POST). A second test checks that the dropdown offers the four expected ranges. |
 | [`tests/callback-validation.spec.js`](tests/callback-validation.spec.js) | Each required field left empty, and three invalid emails: the field shows a validation message, submitting is blocked and moves focus to that field, and the typed values are kept. |
-| [`tests/known-issues.spec.js`](tests/known-issues.spec.js) | The bugs below, written as tests of the correct behaviour and marked pending (`it.skip`) so the suite stays green. Removing `.skip` once a bug is fixed turns the test into a regression check. |
+| [`tests/known-issues.spec.js`](tests/known-issues.spec.js) | The bugs below, written as tests of the correct behavior and marked pending (`it.skip`) so the suite stays green. Removing `.skip` once a bug is fixed turns the test into a regression check. |
 | [`tests/smoke.spec.js`](tests/smoke.spec.js) | The site is up and shows the form. If this fails, check the environment first. |
 
 The bonus step (Number of Employees) runs before the screenshot, so the new value is visible in it.
@@ -105,16 +105,15 @@ forever"), or a `TEST_TIMEOUT` too short to fit one page load plus one action.
 
 ## How the tests run
 
-- **One browser per run, a fresh page per test.** Chromium starts once (the slow part). Each test
-  gets its own isolated browser context, so no cookies or form state carry over between tests.
-- **Screenshot on failure.** When a test fails, a full-page screenshot is saved to
-  `screenshots/failures/<test name>.png` and its path is printed under the failing test.
-- **Fresh screenshots every run.** The `screenshots/` folder is emptied when a run starts, so every
-  file in it comes from the latest run. Animations are finished before capturing, so the same page
-  always produces the same screenshot.
-- **Always cleaned up.** Pages and the browser are closed even when a test fails.
-- **Clear errors.** A missing browser, an unknown form field, a dropdown option that doesn't exist,
-  or a page that never loads each stop with a message that says what went wrong and where.
+- Chromium starts once per run (the slow part). Each test gets its own isolated browser context, so
+  no cookies or form state carry over between tests.
+- When a test fails, a full-page screenshot is saved to `screenshots/failures/<test name>.png` and
+  its path is printed under the failing test.
+- The `screenshots/` folder is emptied when a run starts, so every file in it comes from the latest
+  run. Animations are finished before capturing, so the same page always produces the same screenshot.
+- Pages and the browser are closed even when a test fails.
+- A missing browser, an unknown form field, a dropdown option that doesn't exist, or a page that
+  never loads each fail with a message that says what went wrong and where.
 
 The shared parts live in [`support/`](support/) and are loaded for every test through
 `.mocharc.js`, so test files contain only test steps.
@@ -128,7 +127,7 @@ when a newer push replaces it (runs on `main` are never cancelled). Screenshots,
 downloadable artifact.
 
 The suite tests the live site, so a run can also fail when https://test.netlify.app/ itself is down.
-The smoke test makes that easy to recognise.
+The smoke test makes that easy to recognize.
 
 ## Project structure
 
